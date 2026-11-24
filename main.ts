@@ -15,15 +15,24 @@ const REPLY =
 const OUT_DIR = process.env.OUTPUT_DIR ?? "/output";
 const OUT_PATH = join(OUT_DIR, "entry.txt");
 
-function main(): void {
-  // Gate: the entry must be 1..160 characters, not only whitespace.
-  const chars = [...REPLY].length;
-  if (chars < 1 || chars > 159) {
-    throw new Error(`entry is ${chars} characters; must be 1-159`);
+// Gate: the entry must be a single line of 1..160 characters,
+// not only whitespace. The bound is 160 to match the competition
+// gate and this file's own documentation (previously 159, an off-by-one).
+function validateReply(reply: string): void {
+  const chars = [...reply].length;
+  if (chars < 1 || chars > 160) {
+    throw new Error(`entry is ${chars} characters; must be 1-160`);
   }
-  if (REPLY.trim().length === 0) {
+  if (reply.trim().length === 0) {
     throw new Error("entry must not be only whitespace");
   }
+  if (reply.includes("\n") || reply.includes("\r")) {
+    throw new Error("entry must be a single line");
+  }
+}
+
+function main(): void {
+  validateReply(REPLY);
   mkdirSync(dirname(OUT_PATH), { recursive: true });
   writeFileSync(OUT_PATH, REPLY, "utf8");
 }
